@@ -1,0 +1,48 @@
+{
+    "data": {
+        "type": "accounts",
+        "id": "ad27e265-9605-4b4b-a0e5-3003ea9cc4dc",
+        "version": 0,
+        "organisation_id": "eb0bd6f5-c3f5-44b2-b677-acd23cdde73c",
+        "attributes": {
+            "country": "GB",
+            "base_currency": "GBP",
+            "account_number": "41426819",
+            "bank_id": "400300",
+            "bank_id_code": "GBDSC",
+            "bic": "NWBKGB22",
+            "name": [
+                "Samantha Holder"
+            ],
+            "private_identification": {
+                "birth_date": "2017-07-23",
+                "birth_country": "GB",
+                "identification": "13YH458762",
+                "address": [
+                    "10 Avenue des Champs"
+                ],
+                "city": "London",
+                "country": "GB"
+            },
+            "status": "pending"
+        },
+        "relationships": {
+            "master_account": {
+                "data": [
+                    {
+                        "type": "accounts",
+                        "id": "a52d13a4-f435-4c00-cfad-f5e7ac5972df"
+                    }
+                ]
+            },
+            "account_events": {
+                "data": [
+                    {
+                        "type": "account_events",
+                        "id": "c1023677-70ee-417a-9a6a-e211241f1e9c"
+                    }
+                ]
+            }
+        }
+    }
+}
