@@ -6,28 +6,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 )
 
 const host = "http://accountapi:8080"
 
-/*
-func TestGetList(t *testing.T) {
+//const host = "http://localhost:8080"
 
-	unitUnderTest := client.GetClient(&http.Client{}, "http://localhost:8080")
-
-	response, err := unitUnderTest.GetList()
-
-	if err != nil {
-		t.Error("It didn't work")
-	}
-
-	if response.Data[0].Attributes.BankId != "400300" {
-		t.Errorf("Expected bankID: '%v' but got bankID: '%v'", "400300", response.Data[0].Attributes.BankId)
-	}
-}
-*/
 func TestCreateAccount(t *testing.T) {
 
 	jsonFile, err := os.Open("createaccount.json")
@@ -44,7 +31,7 @@ func TestCreateAccount(t *testing.T) {
 
 	fmt.Println("Account type: " + account.Type)
 
-	unitUnderTest := client.GetClient(&http.Client{}, host)
+	unitUnderTest, _ := client.New(&http.Client{}, host)
 
 	accountResponse, err := unitUnderTest.CreateAccount(&account)
 	if err != nil {
@@ -58,7 +45,7 @@ func TestGetAccount(t *testing.T) {
 
 	expectedAccountID := "ad27e265-9605-4b4b-a0e5-3003ea9cc4dc"
 
-	unitUnderTest := client.GetClient(&http.Client{}, host)
+	unitUnderTest, _ := client.New(&http.Client{}, host)
 
 	account, err := unitUnderTest.GetAccount(expectedAccountID)
 
@@ -75,16 +62,16 @@ func TestDeleteAccount(t *testing.T) {
 
 	expectedAccountID := "ad27e265-9605-4b4b-a0e5-3003ea9cc4dc"
 
-	unitUnderTest := client.GetClient(&http.Client{}, host)
+	unitUnderTest, _ := client.New(&http.Client{}, host)
 
 	err := unitUnderTest.DeleteAccount(expectedAccountID, "0")
 
 	if err != nil {
-		t.Errorf("It didn't work with host '%v'", host)
+		t.Error("It didn't work")
 	}
 }
 
-/*
+// These mocked test scenarios cover failure responses difficult to trigger via integration tests
 func TestCreateAccountWithMock(t *testing.T) {
 
 	jsonFile, err := os.Open("createaccount.json")
@@ -111,11 +98,7 @@ func TestCreateAccountWithMock(t *testing.T) {
 
 	defer testServer.Close()
 
-	unitUnderTest := client.GetClient(&http.Client{}, testServer.URL)
-
-	//decoder := json.NewDecoder(jsonFile)
-
-	//decoder.Decode(account)
+	unitUnderTest, _ := client.New(&http.Client{}, testServer.URL)
 
 	_, err = unitUnderTest.CreateAccount(&account)
 
@@ -150,11 +133,7 @@ func TestCreateCopAccountWithMock(t *testing.T) {
 
 	defer testServer.Close()
 
-	unitUnderTest := client.GetClient(&http.Client{}, testServer.URL)
-
-	//decoder := json.NewDecoder(jsonFile)
-
-	//decoder.Decode(account)
+	unitUnderTest, _ := client.New(&http.Client{}, testServer.URL)
 
 	_, err = unitUnderTest.CreateAccount(&account)
 
@@ -165,7 +144,7 @@ func TestCreateCopAccountWithMock(t *testing.T) {
 
 func TestCreateAccountFailWithMock(t *testing.T) {
 
-	httpResponseStatus := []int{http.StatusInternalServerError, http.StatusTeapot, http.StatusBadGateway}
+	httpResponseStatus := []int{http.StatusInternalServerError, http.StatusGatewayTimeout, http.StatusBadGateway}
 
 	jsonFile, err := os.Open("createaccount.json")
 	if err != nil {
@@ -194,7 +173,7 @@ func TestCreateAccountFailWithMock(t *testing.T) {
 
 			defer testServer.Close()
 
-			unitUnderTest := client.GetClient(&http.Client{}, testServer.URL)
+			unitUnderTest, _ := client.New(&http.Client{}, testServer.URL)
 
 			_, err = unitUnderTest.CreateAccount(&account)
 
@@ -207,14 +186,10 @@ func TestCreateAccountFailWithMock(t *testing.T) {
 
 func TestGetAccountWithMock(t *testing.T) {
 
-	jsonFile, err := os.Open("fetchresponse.json")
+	byteValue, err := readTestData("fetchresponse.json")
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Test request failed with error: '%v'", err.Error())
 	}
-
-	defer jsonFile.Close()
-
-	byteValue, _ := ioutil.ReadAll(jsonFile)
 
 	mux := http.NewServeMux()
 
@@ -228,7 +203,7 @@ func TestGetAccountWithMock(t *testing.T) {
 
 	defer testServer.Close()
 
-	unitUnderTest := client.GetClient(&http.Client{}, testServer.URL)
+	unitUnderTest, _ := client.New(&http.Client{}, testServer.URL)
 
 	account, err := unitUnderTest.GetAccount("41426819")
 
@@ -240,8 +215,6 @@ func TestGetAccountWithMock(t *testing.T) {
 		t.Error("AccountNumber was not mapped to response.")
 	}
 }
-
-
 
 func TestDeleteAccountWithMock(t *testing.T) {
 
@@ -262,7 +235,7 @@ func TestDeleteAccountWithMock(t *testing.T) {
 
 	defer testServer.Close()
 
-	unitUnderTest := client.GetClient(&http.Client{}, testServer.URL)
+	unitUnderTest, _ := client.New(&http.Client{}, testServer.URL)
 
 	err := unitUnderTest.DeleteAccount("41426819", expectedVersion)
 
@@ -270,4 +243,15 @@ func TestDeleteAccountWithMock(t *testing.T) {
 		t.Errorf("Test request failed with error: '%v'", err.Error())
 	}
 }
-*/
+
+func readTestData(filename string) ([]byte, error) {
+
+	jsonFile, err := os.Open(filename)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	defer jsonFile.Close()
+
+	return ioutil.ReadAll(jsonFile)
+}

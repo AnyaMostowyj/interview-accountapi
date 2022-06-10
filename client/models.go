@@ -1,18 +1,14 @@
 package client
 
-type ListResponse struct {
-	Data []Account `json:"data,omitempty"`
-}
-
-type FetchResponse struct {
-	Data DeprecatedAccount `json:"data,omitempty"`
-}
-
-type CreateRequest struct {
+type fetchResponse struct {
 	Data Account `json:"data,omitempty"`
 }
 
-type CreateResponse struct {
+type createRequest struct {
+	Data Account `json:"data,omitempty"`
+}
+
+type createResponse struct {
 	Data Account `json:"data,omitempty"`
 }
 
@@ -29,12 +25,6 @@ type BaseAccount struct {
 }
 
 type Attributes struct {
-	BaseAttributes
-	PrivateIdentification      PrivateIdentification      `json:"private_identification,omitempty"`
-	OrganisationIdentification OrganisationIdentification `json:"organisation_identification,omitempty"`
-}
-
-type BaseAttributes struct {
 	Country                 string   `json:"country,omitempty"`
 	BaseCurrency            string   `json:"base_currency,omitempty"`
 	BankId                  string   `json:"bank_id,omitempty"`
@@ -52,23 +42,7 @@ type BaseAttributes struct {
 	Switched                bool     `json:"switched,omitempty"`
 }
 
-type PrivateIdentification struct {
-	BirthDate      string   `json:"birth_date,omitempty"`
-	BirthCountry   string   `json:"birth_country,omitempty"`
-	Identification string   `json:"identification,omitempty"`
-	Address        []string `json:"address,omitempty"`
-	City           string   `json:"city,omitempty"`
-	Country        string   `json:"country,omitempty"`
-}
-
-type OrganisationIdentification struct {
-	Identification string   `json:"identification,omitempty"`
-	Address        []string `json:"address,omitempty"`
-	City           string   `json:"city,omitempty"`
-	Country        string   `json:"country,omitempty"`
-	Actors         []Actor  `json:"actors,omitempty"`
-}
-
+/*
 type Actor struct {
 	Name      []string `json:"name,omitempty"`
 	BirthDate string   `json:"birth_date,omitempty"`
@@ -85,7 +59,7 @@ type DeprecatedAccount struct {
 }
 
 type DeprecatedAttributes struct {
-	BaseAttributes
+	Attributes
 	PrivateIdentification      DeprecatedPrivateIdentification      `json:"private_identification,omitempty"`
 	OrganisationIdentification DeprecatedOrganisationIdentification `json:"organisation_identification,omitempty"`
 }
@@ -95,14 +69,12 @@ type DeprecatedPrivateIdentification struct {
 	FirstName      string `json:"first_name,omitempty"`
 	LastName       string `json:"last_name,omitempty"`
 	DocumentNumber string `json:"document_number,omitempty"`
-	PrivateIdentification
 }
 
 type DeprecatedOrganisationIdentification struct {
 	Name               string         `json:"name,omitempty"`
 	RegistrationNumber string         `json:"registration_number,omitempty"`
 	Representative     Representative `json:"representative,omitempty"`
-	OrganisationIdentification
 }
 
 type Representative struct {

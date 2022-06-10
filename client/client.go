@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 )
 
 type client struct {
@@ -22,42 +23,24 @@ type httpClient interface {
 
 const path = "/v1/organisation/accounts/"
 
-func GetClient(httpclient httpClient, host string) *client {
+func New(httpclient httpClient, host string) (*client, error) {
+
+	_, err := url.ParseRequestURI(host)
+	if err != nil {
+		return &client{}, err
+	}
 
 	return &client{
 		host:       host,
 		httpclient: httpclient,
-	}
-}
-
-func (client client) GetList() (*ListResponse, error) {
-
-	url := client.host + path
-
-	response, err := client.httpclient.Get(url)
-	if err != nil {
-		return &ListResponse{}, err
-	}
-
-	defer response.Body.Close()
-
-	decoder := json.NewDecoder(response.Body)
-
-	var listResponse ListResponse
-
-	decoder.Decode(&listResponse)
-	if err != nil {
-		return &ListResponse{}, errors.New("deserialisation error for response")
-	}
-
-	return &listResponse, err
+	}, nil
 }
 
 func (client client) CreateAccount(account *Account) (*Account, error) {
 
-	url := client.host + path
+	requesturl := client.host + path
 
-	requestBody := CreateRequest{
+	requestBody := createRequest{
 		Data: *account,
 	}
 
@@ -66,7 +49,7 @@ func (client client) CreateAccount(account *Account) (*Account, error) {
 		return &Account{}, err
 	}
 
-	response, err := client.httpclient.Post(url, "application/json", bytes.NewBuffer(postBody))
+	response, err := client.httpclient.Post(requesturl, "application/json", bytes.NewBuffer(postBody))
 	if err != nil {
 		return &Account{}, err
 	}
@@ -77,11 +60,11 @@ func (client client) CreateAccount(account *Account) (*Account, error) {
 		return &Account{}, errors.New("unexpected response code")
 	}
 
-	newdecoder := json.NewDecoder(response.Body)
+	decoder := json.NewDecoder(response.Body)
 
-	var createResponse CreateResponse
+	var createResponse createResponse
 
-	newdecoder.Decode(&createResponse)
+	decoder.Decode(&createResponse)
 	if err != nil {
 		return &Account{}, errors.New("deserialisation error for response")
 	}
@@ -89,24 +72,24 @@ func (client client) CreateAccount(account *Account) (*Account, error) {
 	return &createResponse.Data, err
 }
 
-func (client client) GetAccount(accountID string) (*DeprecatedAccount, error) {
+func (client client) GetAccount(accountID string) (*Account, error) {
 
-	url := client.host + path + accountID
+	requesturl := client.host + path + accountID
 
-	response, err := client.httpclient.Get(url)
+	response, err := client.httpclient.Get(requesturl)
 	if err != nil {
-		return &DeprecatedAccount{}, err
+		return &Account{}, err
 	}
 
 	defer response.Body.Close()
 
 	decoder := json.NewDecoder(response.Body)
 
-	var fetchResponse FetchResponse
+	var fetchResponse fetchResponse
 
 	decoder.Decode(&fetchResponse)
 	if err != nil {
-		return &DeprecatedAccount{}, errors.New("deserialisation error for response")
+		return &Account{}, errors.New("deserialisation error for response")
 	}
 
 	return &fetchResponse.Data, err
@@ -114,9 +97,14 @@ func (client client) GetAccount(accountID string) (*DeprecatedAccount, error) {
 
 func (client client) DeleteAccount(accountID string, version string) error {
 
-	url := fmt.Sprintf(client.host+path+"%v?version=%v", accountID, version)
+	requesturl := fmt.Sprintf(client.host+path+"%v?version=%v", accountID, version)
 
-	request, err := http.NewRequest(http.MethodDelete, url, nil)
+	_, err := url.ParseRequestURI(requesturl)
+	if err != nil {
+		return err
+	}
+
+	request, err := http.NewRequest(http.MethodDelete, requesturl, nil)
 	if err != nil {
 		return errors.New("error creating delete request")
 	}
