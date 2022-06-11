@@ -12,6 +12,10 @@ type createResponse struct {
 	Data Account `json:"data,omitempty"`
 }
 
+type errorResponse struct {
+	ErrorMessage string `json:"error_message,omitempty"`
+}
+
 type Account struct {
 	Attributes Attributes `json:"attributes,omitempty"`
 	BaseAccount

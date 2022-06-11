@@ -36,7 +36,7 @@ func New(httpclient httpClient, host string) (*client, error) {
 	}, nil
 }
 
-func (client client) CreateAccount(account *Account) (*Account, error) {
+func (client client) Create(account *Account) (*Account, error) {
 
 	requesturl := client.host + path
 
@@ -56,11 +56,18 @@ func (client client) CreateAccount(account *Account) (*Account, error) {
 
 	defer response.Body.Close()
 
-	if response.StatusCode != 201 {
-		return &Account{}, errors.New("unexpected response code")
-	}
-
 	decoder := json.NewDecoder(response.Body)
+
+	if response.StatusCode != 201 {
+		var errorResponse errorResponse
+
+		decoder.Decode(&errorResponse)
+		if err != nil {
+			return &Account{}, errors.New("deserialisation error for response")
+		}
+
+		return &Account{}, errors.New(errorResponse.ErrorMessage)
+	}
 
 	var createResponse createResponse
 
@@ -72,7 +79,7 @@ func (client client) CreateAccount(account *Account) (*Account, error) {
 	return &createResponse.Data, err
 }
 
-func (client client) GetAccount(accountID string) (*Account, error) {
+func (client client) Fetch(accountID string) (*Account, error) {
 
 	requesturl := client.host + path + accountID
 
@@ -95,7 +102,7 @@ func (client client) GetAccount(accountID string) (*Account, error) {
 	return &fetchResponse.Data, err
 }
 
-func (client client) DeleteAccount(accountID string, version string) error {
+func (client client) Delete(accountID string, version string) error {
 
 	requesturl := fmt.Sprintf(client.host+path+"%v?version=%v", accountID, version)
 
@@ -119,5 +126,13 @@ func (client client) DeleteAccount(accountID string, version string) error {
 		return nil
 	}
 
-	return errors.New("something went wrong")
+	decoder := json.NewDecoder(response.Body)
+	var errorResponse errorResponse
+
+	decoder.Decode(&errorResponse)
+	if err != nil {
+		return errors.New("deletion request failed, but response error message could not be read")
+	}
+
+	return errors.New(errorResponse.ErrorMessage)
 }
