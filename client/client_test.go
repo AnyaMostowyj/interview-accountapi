@@ -12,9 +12,6 @@ import (
 	"testing"
 )
 
-//const host = "http://accountapi:8080"
-//const host = "http://localhost:8080"
-
 var host = flag.String("host", "http://localhost:8080", "accountapi host address to execute tests against")
 
 func TestCreateAccount(t *testing.T) {
